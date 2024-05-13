@@ -60,7 +60,7 @@ def receive_udp_packets(robot_udp_ip):
             break
 
 
-def send_parameters(robot_udp_ip):
+def send_parameters(robot_udp_ip, Kp, Ki, Kd, Max_speed, Base_speed, Turn_speed, Threshold):
     # Tworzenie gniazda UDP
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
@@ -168,7 +168,8 @@ def start_application(robot_udp_ip, alias=None):
     Threshold = tk.Entry(Threshold_frame)
     Threshold.grid(row=0, column=1)
 
-    send_params_button = tk.Button(frame, text="Send parameters", command=lambda: send_parameters(robot_udp_ip))
+    send_params_button = tk.Button(frame, text="Send parameters", command=lambda: send_parameters(
+        robot_udp_ip, Kp, Ki, Kd, Max_speed, Base_speed, Turn_speed, Threshold))
     send_params_button.grid(row=6, column=0)
 
     request_params_button = tk.Button(frame, text="Request parameters",
