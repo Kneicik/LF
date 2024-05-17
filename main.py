@@ -31,7 +31,7 @@ def on_button_click(message, robot_udp_ip):
     sock.close()
 
 
-def receive_udp_packets(robot_udp_ip, position_text, kp_text, text_box):
+def receive_udp_packets(robot_udp_ip, position_text, kp_text, text_box, alias):
     # Tworzenie gniazda UDP
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     # Powiązanie gniazda z adresem i portem
@@ -41,21 +41,27 @@ def receive_udp_packets(robot_udp_ip, position_text, kp_text, text_box):
         try:
             data, addr = sock.recvfrom(1024)  # Odbieranie danych
             decoded_data = data.decode()
-            if "Position" in decoded_data:  # Sprawdzanie, czy pakiet zawiera słowo "Position"
-                position_text.config(state=tk.NORMAL)
-                position_text.delete(1.0, tk.END)
-                position_text.insert(tk.END, decoded_data + "\n")
-                position_text.config(state=tk.DISABLED)
-            if "Kp" in decoded_data:  # Sprawdzanie, czy pakiet zawiera słowo "Kp"
-                kp_text.config(state=tk.NORMAL)
-                kp_text.delete(1.0, tk.END)
-                kp_text.insert(tk.END, decoded_data + "\n")
-                kp_text.config(state=tk.DISABLED)
-            if " " in decoded_data and "Position" not in decoded_data and "Kp" not in decoded_data:
-                text_box.config(state=tk.NORMAL)
-                text_box.delete(1.0, tk.END)
-                text_box.insert(tk.END, decoded_data + "\n")
-                text_box.config(state=tk.DISABLED)
+
+            # Check if the message starts with the exact alias followed by a space
+            if alias and decoded_data.startswith(alias + " "):
+                # Remove the alias from the message
+                stripped_data = decoded_data[len(alias) + 1:]
+
+                if "Position" in stripped_data:  # Sprawdzanie, czy pakiet zawiera słowo "Position"
+                    position_text.config(state=tk.NORMAL)
+                    position_text.delete(1.0, tk.END)
+                    position_text.insert(tk.END, stripped_data + "\n")
+                    position_text.config(state=tk.DISABLED)
+                elif "Kp" in stripped_data:  # Sprawdzanie, czy pakiet zawiera słowo "Kp"
+                    kp_text.config(state=tk.NORMAL)
+                    kp_text.delete(1.0, tk.END)
+                    kp_text.insert(tk.END, stripped_data + "\n")
+                    kp_text.config(state=tk.DISABLED)
+                else:
+                    text_box.config(state=tk.NORMAL)
+                    text_box.delete(1.0, tk.END)
+                    text_box.insert(tk.END, stripped_data + "\n")
+                    text_box.config(state=tk.DISABLED)
         except:
             break
 
@@ -194,13 +200,12 @@ def start_application(robot_udp_ip, alias=None):
     kp_text.config(state=tk.DISABLED)
 
     # Uruchomienie funkcji odbierającej pakiety UDP w osobnym wątku
-    thread = threading.Thread(target=receive_udp_packets, args=(robot_udp_ip, position_text, kp_text, text_box))
+    thread = threading.Thread(target=receive_udp_packets, args=(robot_udp_ip, position_text, kp_text, text_box, alias))
     thread.daemon = True  # Ustawienie wątku jako wątek demoniczny
     thread.start()
 
     # Rozpoczęcie głównej pętli programu
     root.mainloop()
-
 
 
 # Tworzenie okna do wprowadzania adresu IP
