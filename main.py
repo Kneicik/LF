@@ -31,7 +31,7 @@ def on_button_click(message, robot_udp_ip):
     sock.close()
 
 
-def receive_udp_packets(robot_udp_ip):
+def receive_udp_packets(robot_udp_ip, position_text, kp_text, text_box):
     # Tworzenie gniazda UDP
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     # Powiązanie gniazda z adresem i portem
@@ -102,6 +102,8 @@ def send_parameters(robot_udp_ip, Kp, Ki, Kd, Max_speed, Base_speed, Turn_speed,
 
 
 def start_application(robot_udp_ip, alias=None):
+    global text_box, position_text, kp_text
+
     # Tworzenie okna głównego
     root = tk.Tk()
     if alias:
@@ -192,12 +194,13 @@ def start_application(robot_udp_ip, alias=None):
     kp_text.config(state=tk.DISABLED)
 
     # Uruchomienie funkcji odbierającej pakiety UDP w osobnym wątku
-    thread = threading.Thread(target=receive_udp_packets, args=(robot_udp_ip,))
+    thread = threading.Thread(target=receive_udp_packets, args=(robot_udp_ip, position_text, kp_text, text_box))
     thread.daemon = True  # Ustawienie wątku jako wątek demoniczny
     thread.start()
 
     # Rozpoczęcie głównej pętli programu
     root.mainloop()
+
 
 
 # Tworzenie okna do wprowadzania adresu IP
