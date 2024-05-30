@@ -7,6 +7,13 @@ import re
 BROADCAST_IP = "0.0.0.0"
 UDP_PORT = 5005
 
+# Global socket
+global_sock = None
+
+def create_global_socket():
+    global global_sock
+    global_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    global_sock.bind((BROADCAST_IP, UDP_PORT))
 
 def is_valid_ip(ip):
     """
@@ -20,7 +27,6 @@ def is_valid_ip(ip):
             return False
     return True
 
-
 def on_button_click(message, robot_udp_ip):
     print("Przycisk został kliknięty!")
     # Tworzenie gniazda UDP
@@ -30,16 +36,12 @@ def on_button_click(message, robot_udp_ip):
     # Zamykanie gniazda
     sock.close()
 
-
 def receive_udp_packets(robot_udp_ip, position_text, kp_text, text_box, alias):
-    # Tworzenie gniazda UDP
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    # Powiązanie gniazda z adresem i portem
-    sock.bind((BROADCAST_IP, UDP_PORT))
+    global global_sock
 
     while True:
         try:
-            data, addr = sock.recvfrom(1024)  # Odbieranie danych
+            data, addr = global_sock.recvfrom(1024)  # Odbieranie danych
             decoded_data = data.decode()
 
             # Check if the message starts with the exact alias followed by a space
@@ -64,7 +66,6 @@ def receive_udp_packets(robot_udp_ip, position_text, kp_text, text_box, alias):
                     text_box.config(state=tk.DISABLED)
         except:
             break
-
 
 def send_parameters(robot_udp_ip, Kp, Ki, Kd, Max_speed, Base_speed, Turn_speed, Threshold):
     # Tworzenie gniazda UDP
@@ -105,7 +106,6 @@ def send_parameters(robot_udp_ip, Kp, Ki, Kd, Max_speed, Base_speed, Turn_speed,
     finally:
         # Zamykanie gniazda
         sock.close()
-
 
 def start_application(robot_udp_ip, alias=None):
     global text_box, position_text, kp_text
@@ -207,7 +207,6 @@ def start_application(robot_udp_ip, alias=None):
     # Rozpoczęcie głównej pętli programu
     root.mainloop()
 
-
 # Tworzenie okna do wprowadzania adresu IP
 def open_ip_window():
     ip_window = tk.Tk()
@@ -241,5 +240,6 @@ def open_ip_window():
     # Uruchomienie głównej pętli programu dla okna do wprowadzania adresu IP
     ip_window.mainloop()
 
-
+# Create the global socket once
+create_global_socket()
 open_ip_window()
